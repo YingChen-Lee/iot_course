@@ -47,6 +47,10 @@ class Mapping():
         for loc in self.route:
             self.grid.map[loc[0],loc[1]] = 2
 
+    def unmark_route(self):
+        for loc in self.route:
+            self.grid.map[loc[0],loc[1]] = 0
+
     def _get_obstacles_position(self, angle_distance_list):
         obstacles = []
         for angle, dist in angle_distance_list:
@@ -113,4 +117,5 @@ if __name__ == '__main__':
     #mapping.grid.print_map()
     mapping.get_route_and_navigation()
     mapping.mark_route()
+    mapping.unmark_route()
     mapping.grid.print_map()
