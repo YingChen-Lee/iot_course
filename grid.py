@@ -1,9 +1,20 @@
 from typing import Tuple, Iterator
 import numpy as np
 import matplotlib.pyplot as plt
+from enum import Enum, auto
+
+class Dir(Enum):
+    E  = auto()
+    NE = auto()
+    N  = auto()
+    NW = auto()
+    W  = auto()
+    SW = auto()
+    S  = auto()
+    SE = auto()
 
 GridLocation = Tuple[int,int]
-NeighborGrid = Tuple[int, GridLocation]
+NeighborGrid = Tuple[Dir, GridLocation]
 
 class SquareGrid:
     def __init__(self, width: int, height: int):
@@ -22,7 +33,7 @@ class SquareGrid:
     def neighbors(self, id: GridLocation) -> Iterator[NeighborGrid]:
         (x, y) = id
         results = []
-        neighbors = [(1,(x+1,y)), (2,(x+1,y+1)), (3,(x,y+1)), (4,(x-1,y+1)), (5,(x-1,y)), (6,(x-1,y-1)), (7,(x,y-1)), (8,(x+1,y-1))]
+        neighbors = [(Dir.E,(x+1,y)), (Dir.NE,(x+1,y+1)), (Dir.N,(x,y+1)), (Dir.NW,(x-1,y+1)), (Dir.W,(x-1,y)), (Dir.SW,(x-1,y-1)), (Dir.S,(x,y-1)), (Dir.SE,(x+1,y-1))]
         for nbr in neighbors:
             if self.in_bounds(nbr[1]) and self.passable(nbr[1]):
                 results.append(nbr)

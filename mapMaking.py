@@ -2,6 +2,11 @@
 import time, math
 import numpy as np
 import grid as gd
+import astar
+from typing import Dict
+from grid import GridLocation
+from grid import NeighborGrid
+from grid  import Dir
 
 def vector_add(lhs, rhs):
     lhs_x, lhs_y = lhs
@@ -17,20 +22,30 @@ def point_round(v):
     return (round(v_x), round(v_y))
 
 class Mapping():
-    def __init__(self, len_x, len_y, grid_num_x, grid_num_y, curr_x = 50, curr_y = 0, clearance_length = 10):
+    def __init__(self, len_x, len_y, grid_num_x, grid_num_y, curr_loc, goal_loc, clearance_length = 10):
         self.len_x = len_x  # centimeter (e.g. 100 cm * 100 cm)
         self.len_y = len_y
         self.grid_size_x = len_x / grid_num_x
         self.grid_size_y = len_y / grid_num_y
-        self.curr_x = curr_x
-        self.curr_y = curr_y
+        self.curr_loc = curr_loc
+        self.goal_loc = goal_loc
         self.clearance = round(clearance_length / min(self.grid_size_x, self.grid_size_y))
         self.grid = gd.SquareGrid(grid_num_x, grid_num_y)
         self.curr_orient = 0
+        self.route = None
+        self.navigation = None
 
     def mark_obstacles(self, angle_distance_list):
         obstacles = self._get_obstacles_position(angle_distance_list)
         self._mark(obstacles)
+
+    def get_route_and_navigation(self):
+        self.route, self.navigation = astar.a_star_search(self.grid, self.curr_loc, self.goal_loc)
+        print(self.navigation) 
+
+    def mark_route(self):
+        for loc in self.route:
+            self.grid.map[loc[0],loc[1]] = 2
 
     def _get_obstacles_position(self, angle_distance_list):
         obstacles = []
@@ -39,8 +54,8 @@ class Mapping():
                 obstacles.append(None)
                 continue
             radian = (angle+90+self.curr_orient) / 180*math.pi #+90: because for servo, -90 degree is right, 90 degree is left, 0 degree is front
-            obstacle_x = self.curr_x + round(dist*math.cos(radian) / self.grid_size_x)
-            obstacle_y = self.curr_y + round(dist*math.sin(radian) / self.grid_size_y)
+            obstacle_x = self.curr_loc[0] + round(dist*math.cos(radian) / self.grid_size_x)
+            obstacle_y = self.curr_loc[1] + round(dist*math.sin(radian) / self.grid_size_y)
             if self.grid.in_bounds((obstacle_x, obstacle_y)):
                 obstacles.append( (obstacle_x, obstacle_y) )
             else:
@@ -91,8 +106,11 @@ class Mapping():
                     self.grid.map[x][y] = 1
 
 if __name__ == '__main__':
-    mapping = Mapping(140,140,20,20, curr_x = 10, curr_y = 5, clearance_length = 3)
-    obstacle_list = [(90, 140), (70, 60), (50,-2), (30, 10), (0, 70), (-30, 60)]
+    mapping = Mapping(140,140,100,100, (50,0), (0,50), clearance_length = 3)
+    obstacle_list = [(90,20), (60, 10), (0, 120), (-30, 60)]
     mapping.curr_orient = 0
     mapping.mark_obstacles(obstacle_list)
+    #mapping.grid.print_map()
+    mapping.get_route_and_navigation()
+    mapping.mark_route()
     mapping.grid.print_map()
