@@ -41,12 +41,12 @@ class SquareGrid:
                 results.append(nbr)
         return results
         
-    def print_map(self):
+    def print_map(self, pause_time=2):
         plt.close()
         plt.imshow(self.map.transpose(), cmap='Greys')
         plt.gca().invert_yaxis()
         plt.show(block=False)
-        plt.pause(1)
+        plt.pause(pause_time)
 
 
 
