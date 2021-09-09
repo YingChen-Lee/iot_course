@@ -1,4 +1,4 @@
-#import picar_4wd as fc
+    #import picar_4wd as fc
 import time, math
 import numpy as np
 import grid as gd
@@ -117,5 +117,6 @@ if __name__ == '__main__':
     #mapping.grid.print_map()
     mapping.get_route_and_navigation()
     mapping.mark_route()
+    mapping.grid.print_map()
     mapping.unmark_route()
     mapping.grid.print_map()
