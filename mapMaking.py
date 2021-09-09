@@ -41,7 +41,6 @@ class Mapping():
 
     def get_route_and_navigation(self):
         self.route, self.navigation = astar.a_star_search(self.grid, self.curr_loc, self.goal_loc)
-        print(self.navigation) 
 
     def mark_route(self):
         for loc in self.route:
@@ -50,6 +49,9 @@ class Mapping():
     def unmark_route(self):
         for loc in self.route:
             self.grid.map[loc[0],loc[1]] = 0
+    
+    def print_map(self, pause_time=2):
+        self.grid.print_map(pause_time)
 
     def _get_obstacles_position(self, angle_distance_list):
         obstacles = []
@@ -117,5 +119,5 @@ if __name__ == '__main__':
     #mapping.grid.print_map()
     mapping.get_route_and_navigation()
     mapping.mark_route()
-    mapping.unmark_route()
+    #mapping.unmark_route()
     mapping.grid.print_map()
