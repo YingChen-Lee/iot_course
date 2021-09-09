@@ -15,11 +15,15 @@ from threading import Thread
 GRAPH_NAME = 'detect.tflite'
 LABELMAP_NAME = 'labelmap.txt'
 
-min_conf_threshold = 0.5
+default_threshold = 0.7
 imW, imH = 1280, 720
+#imW, imH = 640, 480
+customized_threshold = {'stop sign':0.2, 'person':0.5}
+
+flip = -1 #0 means flipping around the x-axis, and positive value means flipping around y-axis. Negaive value means flipping around both axis 
 
 CWD_PATH = os.getcwd()
-PATH_TO_CKPT = os.path.join(CWD_PATH, GRATH_NAME)
+PATH_TO_CKPT = os.path.join(CWD_PATH, GRAPH_NAME)
 PATH_TO_LABELS = os.path.join(CWD_PATH, LABELMAP_NAME)
 
 # Define VideoStream class to handle streaming of video from webcam in separate processing thread
@@ -66,13 +70,12 @@ class ObjectDetector():
         self.interpreter = Interpreter(model_path=PATH_TO_CKPT)
         self.interpreter.allocate_tensors()
 
-        self.input_details = interpreter.get_input_details()
-        self.output_details = interpreter.get_output_details()
-        self.height = input_details[0]['shape'][1]
-        self.width = input_details[0]['shape'][2]
+        self.input_details = self.interpreter.get_input_details()
+        self.output_details = self.interpreter.get_output_details()
+        self.height = self.input_details[0]['shape'][1]
+        self.width = self.input_details[0]['shape'][2]
 
-        self.is_floating_model = (input_details[0]['dtype'] == np.float32)
-
+        self.is_floating_model = (self.input_details[0]['dtype'] == np.float32)
         self.input_mean = 127.5
         self.input_std = 127.5
 
@@ -87,7 +90,7 @@ class ObjectDetector():
         
         frame1 = self.videostream.read()
         
-        frame = frame1.copy()
+        frame = cv2.flip(frame1, -1)
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame_resized = cv2.resize(frame_rgb, (self.width, self.height))
         input_data = np.expand_dims(frame_resized, axis=0)
@@ -103,20 +106,26 @@ class ObjectDetector():
 
         detected_objects = []
         for i in range(len(scores)):
-            if ((scores[i] > min_conf_threshold) and (scores[i] <= 1.0)):
-                detected_objects.append( self.labels[int(classes[i])] )
+            obj = self.labels[int(classes[i])]
+            if obj in customized_threshold:
+                if (customized_threshold[obj] <= scores[i] <= 1.0):
+                    detected_objects.append( (obj, scores[i]) )
+            else:
+                if default_threshold <= scores[i]:
+                    detected_objects.append( (obj, scores[i]) )
+                #detected_objects.append( (self.labels[int(classes[i])], scores[i]) )
 
         t2 = cv2.getTickCount()
-        time1 = (t2 - t1) / freq
+        time1 = (t2 - t1) / self.freq
         frame_rate_calc = 1/time1
-        return detected_objects, frame_rate_clac
+        return detected_objects, frame_rate_calc
 
     def stop_camera(self):
         self.videostream.stop()
 
 if __name__ == '__main__':
+    ob = ObjectDetector()
     while True:
-        ob = ObjectDetector()
         objects, framerate = ob.get_objects_framerate()
         print(objects)
         print(framerate)
