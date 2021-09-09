@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from enum import Enum, auto
 
+import matplotlib.animation as animation
+
 class Dir(Enum):
     E  = auto()
     NE = auto()
@@ -40,8 +42,12 @@ class SquareGrid:
         return results
         
     def print_map(self):
+        plt.close()
         plt.imshow(self.map.transpose(), cmap='Greys')
         plt.gca().invert_yaxis()
-        plt.show()
+        plt.show(block=False)
+        plt.pause(1)
+
+
 
 
