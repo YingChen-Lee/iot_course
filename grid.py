@@ -1,19 +1,19 @@
 from typing import Tuple, Iterator
 import numpy as np
 import matplotlib.pyplot as plt
-from enum import Enum, auto
+from enum import Enum
 
 import matplotlib.animation as animation
 
 class Dir(Enum):
-    E  = auto()
-    NE = auto()
-    N  = auto()
-    NW = auto()
-    W  = auto()
-    SW = auto()
-    S  = auto()
-    SE = auto()
+    E  = 0
+    NE = 1
+    N  = 2
+    NW = 3
+    W  = 4
+    SW = 5
+    S  = 6
+    SE = 7
 
 GridLocation = Tuple[int,int]
 NeighborGrid = Tuple[Dir, GridLocation]

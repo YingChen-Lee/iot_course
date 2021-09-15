@@ -109,11 +109,10 @@ class ObjectDetector():
             obj = self.labels[int(classes[i])]
             if obj in customized_threshold:
                 if (customized_threshold[obj] <= scores[i] <= 1.0):
-                    detected_objects.append( (obj, scores[i]) )
+                    detected_objects.append(obj)
             else:
                 if default_threshold <= scores[i]:
-                    detected_objects.append( (obj, scores[i]) )
-                #detected_objects.append( (self.labels[int(classes[i])], scores[i]) )
+                    detected_objects.append(obj)
 
         t2 = cv2.getTickCount()
         time1 = (t2 - t1) / self.freq

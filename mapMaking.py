@@ -1,4 +1,4 @@
-    #import picar_4wd as fc
+#import picar_4wd as fc
 import time, math
 import numpy as np
 import grid as gd
@@ -22,7 +22,7 @@ def point_round(v):
     return (round(v_x), round(v_y))
 
 class Mapping():
-    def __init__(self, len_x, len_y, grid_num_x, grid_num_y, curr_loc, goal_loc, clearance_length = 10):
+    def __init__(self, len_x, len_y, grid_num_x, grid_num_y, curr_loc, goal_loc, curr_dir, clearance_length = 10):
         self.len_x = len_x  # centimeter (e.g. 100 cm * 100 cm)
         self.len_y = len_y
         self.grid_size_x = len_x / grid_num_x
@@ -31,7 +31,7 @@ class Mapping():
         self.goal_loc = goal_loc
         self.clearance = round(clearance_length / min(self.grid_size_x, self.grid_size_y))
         self.grid = gd.SquareGrid(grid_num_x, grid_num_y)
-        self.curr_orient = 0
+        self.curr_dir = curr_dir
         self.route = None
         self.navigation = None
 
@@ -47,19 +47,27 @@ class Mapping():
             self.grid.map[loc[0],loc[1]] = 2
 
     def unmark_route(self):
+        if self.route == None:
+            return
         for loc in self.route:
             self.grid.map[loc[0],loc[1]] = 0
     
     def print_map(self, pause_time=2):
         self.grid.print_map(pause_time)
 
+    def is_reach_goal(self, tolerance):
+        del_x = self.goal_loc[0] - self.curr_loc[0]
+        del_y = self.goal_loc[1] - self.curr_loc[1]
+        dist_grid_num = math.sqrt( del_x*del_x + del_y*del_y )
+        return dist_grid_num <= tolerance
+            
     def _get_obstacles_position(self, angle_distance_list):
         obstacles = []
         for angle, dist in angle_distance_list:
             if dist <= 0:
                 obstacles.append(None)
                 continue
-            radian = (angle+90+self.curr_orient) / 180*math.pi #+90: because for servo, -90 degree is right, 90 degree is left, 0 degree is front
+            radian = (angle + self.curr_dir.value * 45) / 180*math.pi # the angle is from the car's perspective
             obstacle_x = self.curr_loc[0] + round(dist*math.cos(radian) / self.grid_size_x)
             obstacle_y = self.curr_loc[1] + round(dist*math.sin(radian) / self.grid_size_y)
             if self.grid.in_bounds((obstacle_x, obstacle_y)):
@@ -113,8 +121,8 @@ class Mapping():
 
 if __name__ == '__main__':
     mapping = Mapping(140,140,100,100, (50,0), (0,50), clearance_length = 3)
-    obstacle_list = [(90,20), (60, 10), (0, 120), (-30, 60)]
-    mapping.curr_orient = 0
+    obstacle_list = [(60,40), (30, 70), (0, 120), (-30, 60)]
+    mapping.curr_dir = Dir.N
     mapping.mark_obstacles(obstacle_list)
     #mapping.grid.print_map()
     mapping.get_route_and_navigation()
