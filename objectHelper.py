@@ -1,6 +1,6 @@
 import picar_4wd as fc
 import time
-import objectDect as objD
+import objectDetect as objD
 
 OBJECT_DETECTION_PERIOD = 1
 target_objects = {'person', 'traffic light'}

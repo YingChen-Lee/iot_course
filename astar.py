@@ -15,10 +15,13 @@ def heuristic(a: GridLocation, b: GridLocation) -> float:
 def build_route_navigation(came_from: Dict[GridLocation, Optional[NeighborGrid]], goal: GridLocation):
     route: List[GridLocation] = []
     navigation: List[Tuple[Dir, int]] = []
+    turnpoints: List[GridLocation] = []
     curr = came_from[goal]
     prev_dir = curr[0]
+    prev_loc = curr[1]
     dir_count = 0
     curr_dir = None
+    turnpoints.append(goal)
     while curr != None:
         route.append(curr[1])
         curr_dir = curr[0]
@@ -26,12 +29,15 @@ def build_route_navigation(came_from: Dict[GridLocation, Optional[NeighborGrid]]
             navigation.append((prev_dir, dir_count))
             dir_count = 1
             prev_dir = curr_dir
+            turnpoints.append(prev_loc)
         else:
             dir_count += 1
+        prev_loc = curr[1]
         curr = came_from[curr[1]]
     navigation.append((curr_dir, dir_count))
     navigation.reverse()
-    return route, navigation
+    turnpoints.reverse()
+    return route, navigation, turnpoints
     
 
 def a_star_search(graph: gd.SquareGrid, start: GridLocation, goal: GridLocation):
@@ -55,8 +61,8 @@ def a_star_search(graph: gd.SquareGrid, start: GridLocation, goal: GridLocation)
                 priority = new_cost + heuristic(nbr_grid[1], goal)
                 frontier.put(nbr_grid[1], priority)
                 came_from[nbr_grid[1]] = (nbr_grid[0], current)
-    route, navigation = build_route_navigation(came_from, goal)
-    return route, navigation
+    route, navigation, turnpoints = build_route_navigation(came_from, goal)
+    return route, navigation, turnpoints
 
 def get_change_dir_penalty(nbr_grid: NeighborGrid, came_from_grid: Optional[NeighborGrid]):
     nbr_dir = nbr_grid[0]

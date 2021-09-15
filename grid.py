@@ -48,6 +48,9 @@ class SquareGrid:
         plt.show(block=False)
         plt.pause(pause_time)
 
+    def reset_map(self):
+        self.map = np.zeros( (self.width, self.height), dtype = int)
+
 
 
 

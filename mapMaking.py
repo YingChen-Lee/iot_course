@@ -34,13 +34,15 @@ class Mapping():
         self.curr_dir = curr_dir
         self.route = None
         self.navigation = None
+        self.turnpoints = None
 
     def mark_obstacles(self, angle_distance_list):
+        self.grid.reset_map()
         obstacles = self._get_obstacles_position(angle_distance_list)
         self._mark(obstacles)
 
-    def get_route_and_navigation(self):
-        self.route, self.navigation = astar.a_star_search(self.grid, self.curr_loc, self.goal_loc)
+    def get_route_navigation_turnpoints(self):
+        self.route, self.navigation, self.turnpoints = astar.a_star_search(self.grid, self.curr_loc, self.goal_loc)
 
     def mark_route(self):
         for loc in self.route:
@@ -100,17 +102,17 @@ class Mapping():
         """
         add 0.5 of the vector per time, otherwise some point will lost.
         0.5 is acceptable, but there are still few points lost
-        can add 0.2 of the vector per time as well, almost no points lost
+        can add 0.1 of the vector per time as well, almost no points lost
         """
         point_line = vector_add(point1, vector_mul_scalar(unit_vector_line, (-1)*clearance) )
-        for i in range( 2*(round(dist) + 2*clearance) + 1):
+        for i in range( 10*(round(dist) + 2*clearance) + 1):
             point_normal = point_round( vector_add(point_line, vector_mul_scalar(unit_vector_normal, (-1)*clearance)) )
-            for j in range( 2*2*clearance + 1 ):
+            for j in range( 10*2*clearance + 1 ):
                 point = point_round(point_normal)
                 if self.grid.in_bounds((point[0], point[1])):
                     self.grid.map[point[0], point[1]] = 1
-                point_normal = vector_add( point_normal, vector_mul_scalar(unit_vector_normal, 0.5))
-            point_line = vector_add(point_line, vector_mul_scalar(unit_vector_line, 0.5))
+                point_normal = vector_add( point_normal, vector_mul_scalar(unit_vector_normal, 0.1))
+            point_line = vector_add(point_line, vector_mul_scalar(unit_vector_line, 0.1))
 
 
     def _add_clearance_for_one_point(self, point_x, point_y, clearance):
@@ -120,12 +122,14 @@ class Mapping():
                     self.grid.map[x][y] = 1
 
 if __name__ == '__main__':
-    mapping = Mapping(140,140,100,100, (50,0), (0,50), clearance_length = 3)
+    mapping = Mapping(150,150,100,100, (50,0), (0,50), Dir.N, clearance_length = 3)
     obstacle_list = [(60,40), (30, 70), (0, 120), (-30, 60)]
     mapping.curr_dir = Dir.N
     mapping.mark_obstacles(obstacle_list)
     #mapping.grid.print_map()
-    mapping.get_route_and_navigation()
+    mapping.get_route_navigation_turnpoints()
     mapping.mark_route()
     #mapping.unmark_route()
     mapping.grid.print_map()
+    print(mapping.navigation)
+    print(mapping.turnpoints)

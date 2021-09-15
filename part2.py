@@ -1,4 +1,4 @@
-#import picar_4wd as fc
+import picar_4wd as fc
 import traceback
 import time
 import mapMaking as mp
@@ -10,7 +10,7 @@ Y_SIZE = 150 # centimeter
 X_GRID = 100
 Y_GRID = 100
 GRID_SIZE = X_SIZE / X_GRID
-TURN_PWR = 20
+TURN_PWR = 40
 TURN_TIME = 2  #adjust this parameter, make it turn 45 degree each time 
 FORWARD_POWER = 30
 
@@ -50,9 +50,10 @@ def turn_to(target_dir, map_helper):
 
 def scan_and_set_route(map_helper):
     map_helper.unmark_route()
-    angle_dist_list = get_distances(divisor=18)
+    angle_dist_list = get_distances(divisor=36)
     map_helper.mark_obstacles(angle_dist_list)
-    map_helper.get_route_and_navigation()
+    map_helper.print_map(2)
+    map_helper.get_route_navigation_turnpoints()
     map_helper.mark_route()
     map_helper.print_map(2)
 
@@ -68,20 +69,25 @@ def get_next_step(map_helper):
 
 def go_forward_and_detect_object(target_dist, power=FORWARD_POWER):
     total_dist = 0
-
-    obj.start_detect_object()
+    time.sleep(0.2)
+    fc.forward(power)
+    if 5 <= target_dist < 30:
+        total_dist += 3
+    else:
+        total_dist += 1
+    #obj.start_detect_object()
     while total_dist < target_dist:
         start_time = time.time()
-        
+        """        
         if obj.need_take_over():
             total_dist += (time.time() - start_time) * fc.speed_val()
             total_dist += obj.take_over(forward_power = FORWARD_POWER)
             start_time = time.time()
-        
-        time.sleep(0.1)
+        """
+        time.sleep(0.025)
         total_dist += (time.time() - start_time) * fc.speed_val()
 
-    obj.end_detect_object()
+    #obj.end_detect_object()
     fc.stop()
 
 def get_scan_dir(map_helper):
@@ -93,20 +99,31 @@ def get_scan_dir(map_helper):
 
 if __name__ == '__main__':
     try:
-        map_helper = mp.Mapping(X_SIZE, Y_SIZE, X_GRID, Y_GRID, (50,0), (99,30), curr_dir = Dir.N, clearance_length = 5)
+        map_helper = mp.Mapping(X_SIZE, Y_SIZE, X_GRID, Y_GRID, (50,0), (99,50), curr_dir = Dir.N, clearance_length = 5)
         scan_dir = Dir.N
+        fc.start_speed_thread()
         while not map_helper.is_reach_goal( tolerance =  (10/GRID_SIZE) ):
-            ## turn -> scan -> turn -> go 
+            ## turn -> scan -> turn -> go
             turn_to(scan_dir, map_helper)
             
             scan_and_set_route(map_helper)
             go_dir, dist = get_next_step(map_helper)
+            ##print(go_dir)
+            ##print(dist)
             turn_to(go_dir, map_helper)
-
             go_forward_and_detect_object(dist)
+            map_helper.curr_loc = map_helper.turnpoints[0]
+            ##print("map_helper.curr_loc = ")
+            ##print(map_helper.curr_loc)
 
             scan_dir = get_scan_dir(map_helper)
-    
+            ##print("scan_dir=")
+            ##print(scan_dir)
+            ##print("curr_dir=")
+            ##print(map_helper.curr_dir)
+        fc.left_rear_speed.deinit()
+        fc.right_rear_speed.deinit()
+
     except Exception as e:
         print(e)
         fc.stop()
