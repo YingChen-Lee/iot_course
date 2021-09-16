@@ -18,7 +18,7 @@ LABELMAP_NAME = 'labelmap.txt'
 default_threshold = 0.7
 imW, imH = 1280, 720
 #imW, imH = 640, 480
-customized_threshold = {'stop sign':0.2, 'person':0.5}
+customized_threshold = {'stop sign':0.5, 'person':0.5}
 
 flip = -1 #0 means flipping around the x-axis, and positive value means flipping around y-axis. Negaive value means flipping around both axis 
 
@@ -110,9 +110,11 @@ class ObjectDetector():
             if obj in customized_threshold:
                 if (customized_threshold[obj] <= scores[i] <= 1.0):
                     detected_objects.append(obj)
+                    #print(obj + ": " + str(scores[i]))   ##### test #####
             else:
-                if default_threshold <= scores[i]:
+                if (default_threshold <= scores[i] <= 1.0):
                     detected_objects.append(obj)
+                    #print(obj + ": " + str(scores[i]))     ##### test #####
 
         t2 = cv2.getTickCount()
         time1 = (t2 - t1) / self.freq

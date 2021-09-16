@@ -37,7 +37,7 @@ class Mapping():
         self.turnpoints = None
 
     def mark_obstacles(self, angle_distance_list):
-        self.grid.reset_map()
+        #self.grid.reset_map()
         obstacles = self._get_obstacles_position(angle_distance_list)
         self._mark(obstacles)
 
