@@ -3,11 +3,13 @@ import time
 import objectDetect as objD
 
 OBJECT_DETECTION_PERIOD = 1
-target_objects = {'person', 'traffic light'}
+target_objects = {'person', 'stop sign'}
 
 detected_object_timestamp = {}
 need_handle_objects = []
 detect_object_flag = True
+unfreeze_timestamp = {}
+unfreeze_time = 2
 
 def detect_object():
     global detected_object_timestamp
@@ -34,7 +36,8 @@ def check_object(): # timeout: it's meaningless to react to the object that was 
     need_handle_objects = []
     for obj in detected_object_timestamp:
         timestamp = detected_object_timestamp[obj]
-        if time.time() - timestamp < OBJECT_DETECTION_PERIOD:
+        unfreeze_timestamp_obj = unfreeze_timestamp[obj]
+        if time.time() - timestamp < OBJECT_DETECTION_PERIOD and time.time() >= unfreeze_timestamp_obj:
             need_handle_objects.append(obj)
 
 def need_take_over():
@@ -48,23 +51,22 @@ def react_to_person(forward_power):
         time.sleep(0.1)
     
     fc.forward(forward_power)
-    start_time = time.time()
-    time.sleep(1)
-    dist = fc.speed_val() * (time.time() - start_time)
+    unfreeze_timestamp['person'] = time.time() + unfreeze_time
+
+    dist = 4 # in this process, the car actually go a small distance
     return dist
 
-def react_to_traffic_light(forward_power):
+def react_to_stop_sign(forward_power):
     fc.stop()
     time.sleep(2)
 
     fc.forward(forward_power)
-    start_time = time.time()
-    time.sleep(1)
-    dist = fc.speed_val() * (time.time() - start_time)
+    unfreeze_timestamp['stop sign'] = time.time() + unfreeze_time
+    dist = 4 # in this process, the car actually go a small distance
     return dist
 
 def take_over(forward_power=30):
     if 'person' in need_handle_objects:  # priority: person > traffic light
         return react_to_person(forward_power)
     elif 'traffic light' in need_handle_objects :
-        return react_to_traffic_light(forward_power)
+        return react_to_stop_sign(forward_power)
