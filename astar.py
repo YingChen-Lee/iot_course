@@ -5,7 +5,7 @@ from grid import Dir
 import priorityQueue as pq
 from typing import Dict, Optional, Tuple, List
 
-PENALTY_FOR_CHANGE_DIR = 30
+PENALTY_FOR_CHANGE_DIR = 50
 
 def heuristic(a: GridLocation, b: GridLocation) -> float:
     (x1, y1) = a

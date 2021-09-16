@@ -31,7 +31,6 @@ def get_distances(divisor):
         time.sleep(0.025)
     fc.current_angle = 0
     servo.set_angle(fc.current_angle)
-    print(angle_dist_list)
     return angle_dist_list
 
 def turn_to(target_dir, map_helper):
@@ -98,7 +97,7 @@ def get_scan_dir(map_helper):
 
 if __name__ == '__main__':
     try:
-        map_helper = mp.Mapping(X_SIZE, Y_SIZE, X_GRID, Y_GRID, (50,0), (50,99), curr_dir = Dir.N, clearance_length = 5)
+        map_helper = mp.Mapping(X_SIZE, Y_SIZE, X_GRID, Y_GRID, (50,0), (50,99), curr_dir = Dir.N, clearance_length = 7)
         scan_dir = Dir.N
         fc.start_speed_thread()
         obj.start_detect_object()
