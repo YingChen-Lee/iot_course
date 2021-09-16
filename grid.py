@@ -51,6 +51,12 @@ class SquareGrid:
     def reset_map(self):
         self.map = np.zeros( (self.width, self.height), dtype = int)
 
+    def clear_map_in_vision(self, eqn_a, eqn_b, eqn_c): # clear the region where ax+by+c>0
+        for i in range(self.width):
+            for j in range(self.height):
+                if eqn_a*i + eqn_b*j + eqn_c > 0:
+                    self.map[i][j] = 0
+
 
 
 

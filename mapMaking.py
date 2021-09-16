@@ -8,6 +8,7 @@ from grid import NeighborGrid
 from grid  import Dir
 
 INTERPOLATION_LIMIT_LENGTH = 15
+CENTER_TO_SENSOR_DIST = 11
 
 def vector_add(lhs, rhs):
     lhs_x, lhs_y = lhs
@@ -38,9 +39,23 @@ class Mapping():
         self.turnpoints = None
 
     def mark_obstacles(self, angle_distance_list):
-        #self.grid.reset_map()
+        self.clear_map_in_vision()
         obstacles = self._get_obstacles_position(angle_distance_list)
         self._mark(obstacles)
+    
+    def clear_map_in_vision(self):
+        """
+        In each time the car scan from +90 ~ -90, the region where the car can see can be reset to 0.
+        """
+        sensor_loc_x = round(self.curr_loc[0] + CENTER_TO_SENSOR_DIST * math.cos(self.curr_dir.value*45*math.pi/180)/self.grid_size_x)
+        sensor_loc_y = round(self.curr_loc[1] + CENTER_TO_SENSOR_DIST * math.sin(self.curr_dir.value*45*math.pi/180)/self.grid_size_y)
+        norm_x = math.cos(self.curr_dir.value*45*math.pi/180)
+        norm_y = math.sin(self.curr_dir.value*45*math.pi/180)
+        # line equation: ax + by + c = 0, clear ax + by + c > 0 part
+        eqn_a = norm_x
+        eqn_b = norm_y
+        eqn_c = (-1) * ( eqn_a * sensor_loc_x + eqn_b * sensor_loc_y)
+        self.grid.clear_map_in_vision(eqn_a, eqn_b, eqn_c)
 
     def get_route_navigation_turnpoints(self):
         self.route, self.navigation, self.turnpoints = astar.a_star_search(self.grid, self.curr_loc, self.goal_loc)
@@ -66,13 +81,15 @@ class Mapping():
             
     def _get_obstacles_position(self, angle_distance_list):
         obstacles = []
+        sensor_loc_x = round(self.curr_loc[0] + CENTER_TO_SENSOR_DIST * math.cos(self.curr_dir.value*45*math.pi/180)/self.grid_size_x)
+        sensor_loc_y = round(self.curr_loc[1] + CENTER_TO_SENSOR_DIST * math.sin(self.curr_dir.value*45*math.pi/180)/self.grid_size_y)
         for angle, dist in angle_distance_list:
             if dist <= 0:
                 obstacles.append(None)
                 continue
             radian = (angle + self.curr_dir.value * 45) / 180*math.pi # the angle is from the car's perspective
-            obstacle_x = self.curr_loc[0] + round(dist*math.cos(radian) / self.grid_size_x)
-            obstacle_y = self.curr_loc[1] + round(dist*math.sin(radian) / self.grid_size_y)
+            obstacle_x = sensor_loc_x + round(dist*math.cos(radian) / self.grid_size_x) 
+            obstacle_y = sensor_loc_y + round(dist*math.sin(radian) / self.grid_size_y) 
             if self.grid.in_bounds((obstacle_x, obstacle_y)):
                 obstacles.append( (obstacle_x, obstacle_y) )
             else:
@@ -125,12 +142,18 @@ class Mapping():
 if __name__ == '__main__':
     mapping = Mapping(150,150,100,100, (50,0), (0,50), Dir.N, clearance_length = 5)
     obstacle_list = [(60,40), (50, 45), (40, 80), (30, 50), (20,45) ,  (-30, 60)]
+    #obstacle_list = [(0,1)]
     mapping.curr_dir = Dir.N
     mapping.mark_obstacles(obstacle_list)
     #mapping.grid.print_map()
-    mapping.get_route_navigation_turnpoints()
-    mapping.mark_route()
+    #mapping.get_route_navigation_turnpoints()
+    #mapping.mark_route()
     #mapping.unmark_route()
     mapping.grid.print_map()
-    print(mapping.navigation)
-    print(mapping.turnpoints)
+    
+    mapping.curr_dir = Dir.NE
+    obstacle_list = []
+    mapping.mark_obstacles(obstacle_list)
+    mapping.grid.print_map()
+    #print(mapping.navigation)
+    #print(mapping.turnpoints)
