@@ -1,4 +1,3 @@
-#import picar_4wd as fc
 import time, math
 import numpy as np
 import grid as gd
@@ -7,6 +6,8 @@ from typing import Dict
 from grid import GridLocation
 from grid import NeighborGrid
 from grid  import Dir
+
+INTERPOLATION_LIMIT_LENGTH = 15
 
 def vector_add(lhs, rhs):
     lhs_x, lhs_y = lhs
@@ -92,7 +93,7 @@ class Mapping():
         point1_x, point1_y = point1
         point2_x, point2_y = point2
         dist = math.sqrt( (point1_x - point2_x) * (point1_x - point2_x) + (point1_y - point2_y) * (point1_y - point2_y))
-        if dist == 0:
+        if dist == 0 or dist > INTERPOLATION_LIMIT_LENGTH:
             self._add_clearance_for_one_point(point1_x, point1_y, clearance)
             return
         
@@ -122,8 +123,8 @@ class Mapping():
                     self.grid.map[x][y] = 1
 
 if __name__ == '__main__':
-    mapping = Mapping(150,150,100,100, (50,0), (0,50), Dir.N, clearance_length = 3)
-    obstacle_list = [(60,40), (30, 70), (0, 120), (-30, 60)]
+    mapping = Mapping(150,150,100,100, (50,0), (0,50), Dir.N, clearance_length = 5)
+    obstacle_list = [(60,40), (50, 45), (40, 80), (30, 50), (20,45) ,  (-30, 60)]
     mapping.curr_dir = Dir.N
     mapping.mark_obstacles(obstacle_list)
     #mapping.grid.print_map()
