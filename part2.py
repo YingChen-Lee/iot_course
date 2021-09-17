@@ -12,7 +12,12 @@ Y_GRID = 100
 GRID_SIZE = X_SIZE / X_GRID
 TURN_PWR = 35
 TURN_TIME = 2.5  #adjust this parameter, make it turn 45 degree each time 
-FORWARD_POWER = 30
+FORWARD_POWER = 40
+GOAL = (25,99)
+
+def get_median_3(dists):
+    dists.sort()
+    return dists[1]
 
 def get_distances(divisor):
     angle_dist_list = []
@@ -23,12 +28,14 @@ def get_distances(divisor):
     time.sleep(0.2)
     
     for i in range(divisor + 1):
-        distance = fc.get_distance_at(angle = fc.current_angle)
+        dists = []
+        for j in range(3):
+            dists.append( fc.get_distance_at(angle = fc.current_angle) )
+        distance = get_median_3(dists)
         if distance < 0:  # too far, make the distance very large, indicating it is outside the map
             distance = 10 * max(X_SIZE, Y_SIZE)
         angle_dist_list.append((fc.current_angle, distance))
         fc.current_angle -= step
-        time.sleep(0.025)
     fc.current_angle = 0
     servo.set_angle(fc.current_angle)
     return angle_dist_list
@@ -50,10 +57,10 @@ def turn_to(target_dir, map_helper):
 
 def scan_and_set_route(map_helper):
     map_helper.unmark_route()
-    angle_dist_list = get_distances(divisor=36)
+    angle_dist_list = get_distances(divisor=24)
     map_helper.mark_obstacles(angle_dist_list)
-    map_helper.get_route_navigation_turnpoints()
-    map_helper.mark_route()
+    #map_helper.get_route_navigation_turnpoints()
+    #map_helper.mark_route()
     map_helper.print_map(2)
 
 def get_next_step(map_helper):
@@ -97,30 +104,26 @@ def get_scan_dir(map_helper):
 
 if __name__ == '__main__':
     try:
-        map_helper = mp.Mapping(X_SIZE, Y_SIZE, X_GRID, Y_GRID, (50,0), (50,99), curr_dir = Dir.N, clearance_length = 10)
+        map_helper = mp.Mapping(X_SIZE, Y_SIZE, X_GRID, Y_GRID, (50,0), GOAL, curr_dir = Dir.N, clearance_length = 3)
         scan_dir = Dir.N
         fc.start_speed_thread()
         obj.start_detect_object()
         time.sleep(1)
+
+        scan_and_set_route(map_helper) ### test ###
+        """
         while not map_helper.is_reach_goal( tolerance =  (10/GRID_SIZE) ):
             ## turn -> scan -> turn -> go
             turn_to(scan_dir, map_helper)
             
             scan_and_set_route(map_helper)
             go_dir, dist = get_next_step(map_helper)
-            ##print(go_dir)
-            ##print(dist)
             turn_to(go_dir, map_helper)
             go_forward_and_detect_object(dist)
             map_helper.curr_loc = map_helper.turnpoints[0]
-            ##print("map_helper.curr_loc = ")
-            ##print(map_helper.curr_loc)
 
             scan_dir = get_scan_dir(map_helper)
-            ##print("scan_dir=")
-            ##print(scan_dir)
-            ##print("curr_dir=")
-            ##print(map_helper.curr_dir)
+        """
         obj.end_detect_object()
         fc.left_rear_speed.deinit()
         fc.right_rear_speed.deinit()
