@@ -12,7 +12,7 @@ X_GRID = 100
 Y_GRID = 100
 GRID_SIZE = X_SIZE / X_GRID
 TURN_PWR = 35
-TURN_TIME = 2.5  #adjust this parameter, make it turn 45 degree each time 
+TURN_TIME = 2  #adjust this parameter, make it turn 45 degree each time 
 FORWARD_POWER = 40
 GOAL = (25,99)
 
@@ -46,15 +46,14 @@ def get_distances(divisor, get_median=True):
     return angle_dist_list
 
 def turn_to(target_dir, map_helper):
-    fine_tuner = ft.fineTune()
-    fine_tuner.set_ref_points()
-
     del_dir = target_dir.value - map_helper.curr_dir.value
     if del_dir > 4:  # > 180 degree
         del_dir -= 8
     elif del_dir < -4:  # < -180 degree
         del_dir += 8
     
+    fine_tuner = ft.fineTune(del_dir)
+    fine_tuner.set_ref_points()
     if del_dir > 0:
         fc.turn_left(TURN_PWR)
     elif del_dir < 0:
@@ -62,7 +61,7 @@ def turn_to(target_dir, map_helper):
     time.sleep(TURN_TIME*abs(del_dir))
     fc.stop()
 
-    ft.fine_tune(del_dir)
+    fine_tuner.fine_tune()
     map_helper.curr_dir = target_dir
 
 def scan_and_set_route(map_helper):
@@ -117,10 +116,11 @@ def get_scan_dir(map_helper):
 if __name__ == '__main__':
     try:
         map_helper = mp.Mapping(X_SIZE, Y_SIZE, X_GRID, Y_GRID, (50,0), GOAL, curr_dir = Dir.N, clearance_length = 3)
-        scan_dir = Dir.N
+        scan_dir = Dir.E
         fc.start_speed_thread()
         time.sleep(1)
-
+        
+        turn_to(scan_dir, map_helper) #####test#####
         """
         while not map_helper.is_reach_goal( tolerance =  (10/GRID_SIZE) ):
             ## turn -> scan -> turn -> go
