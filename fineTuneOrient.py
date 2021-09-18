@@ -4,7 +4,7 @@ import time
 import math
 
 FINE_TUNE_STEP_SIZE = 7.5
-THRESHOLD = 50 #centimeter
+THRESHOLD = 100 #centimeter
 FINE_TUNE_PWR = part2.TURN_PWR
 FINE_TUNE_TIME =  part2.TURN_TIME * (FINE_TUNE_STEP_SIZE/45)  #make it turn FINE_TUNE_STEP_SIZE degree each time
 
@@ -42,7 +42,7 @@ class fineTune():
         relevance_list = []
         for del_i in range( ideal_del_i - self.tune_range, ideal_del_i + self.tune_range + 1):
             relevance = self._cal_relevance(lhs, rhs, del_i)
-            relevance -=  (abs(del_i - ideal_del_i))  ##### test #####
+            #relevance -=  math.sqrt(abs(del_i - ideal_del_i))  ##### test #####
             relevance_list.append(relevance)
         print(relevance_list)
         fine_tune_displacement = self._get_fine_tune_displacement(relevance_list)

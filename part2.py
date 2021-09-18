@@ -14,7 +14,9 @@ GRID_SIZE = X_SIZE / X_GRID
 TURN_PWR = 35
 TURN_TIME = 2  #adjust this parameter, make it turn 45 degree each time 
 FORWARD_POWER = 40
-GOAL = (25,99)
+GOAL = (50,99)
+LOW_POWER = True
+LOW_POWER_MUL = 1.2
 
 def get_median_3(dists):
     dists.sort()
@@ -46,19 +48,25 @@ def get_distances(divisor, get_median=True):
     return angle_dist_list
 
 def turn_to(target_dir, map_helper):
+    if target_dir == map_helper.curr_dir:
+        return
     del_dir = target_dir.value - map_helper.curr_dir.value
     if del_dir > 4:  # > 180 degree
         del_dir -= 8
     elif del_dir < -4:  # < -180 degree
         del_dir += 8
-    
+     
     fine_tuner = ft.fineTune(del_dir)
     fine_tuner.set_ref_points()
     if del_dir > 0:
         fc.turn_left(TURN_PWR)
     elif del_dir < 0:
         fc.turn_right(TURN_PWR)
-    time.sleep(TURN_TIME*abs(del_dir))
+    
+    if LOW_POWER and abs(del_dir) >= 2:
+        time.sleep(LOW_POWER_MUL * TURN_TIME*abs(del_dir))
+    else:
+        time.sleep(TURN_TIME*abs(del_dir))
     fc.stop()
 
     fine_tuner.fine_tune()
@@ -83,8 +91,7 @@ def get_next_step(map_helper):
     return (dir_next, dist)
 
 def go_forward_and_detect_object(target_dist, power=FORWARD_POWER):
-    obj.start_detect_object()
-    target_dist *= 1.2
+    target_dist *= 1
     total_dist = 0
     time.sleep(0.2)
     fc.forward(power)
@@ -104,7 +111,6 @@ def go_forward_and_detect_object(target_dist, power=FORWARD_POWER):
         total_dist += (time.time() - start_time) * fc.speed_val()
 
     fc.stop()
-    obj.end_detect_object()
 
 def get_scan_dir(map_helper):
     if len(map_helper.navigation) > 1:
@@ -115,13 +121,12 @@ def get_scan_dir(map_helper):
 
 if __name__ == '__main__':
     try:
-        map_helper = mp.Mapping(X_SIZE, Y_SIZE, X_GRID, Y_GRID, (50,0), GOAL, curr_dir = Dir.N, clearance_length = 3)
-        scan_dir = Dir.E
+        map_helper = mp.Mapping(X_SIZE, Y_SIZE, X_GRID, Y_GRID, (50,0), GOAL, curr_dir = Dir.N, clearance_length = 10)
+        scan_dir = Dir.N
         fc.start_speed_thread()
+        obj.start_detect_object()
         time.sleep(1)
         
-        turn_to(scan_dir, map_helper) #####test#####
-        """
         while not map_helper.is_reach_goal( tolerance =  (10/GRID_SIZE) ):
             ## turn -> scan -> turn -> go
             turn_to(scan_dir, map_helper)
@@ -133,7 +138,8 @@ if __name__ == '__main__':
             map_helper.curr_loc = map_helper.turnpoints[0]
 
             scan_dir = get_scan_dir(map_helper)
-        """
+
+        obj.end_detect_object()
         fc.left_rear_speed.deinit()
         fc.right_rear_speed.deinit()
         
