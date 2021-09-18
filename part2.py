@@ -3,6 +3,7 @@ import traceback
 import time
 import mapMaking as mp
 import objectHelper as obj
+import fineTuneOrient as ft
 from grid import Dir
 
 X_SIZE = 150 # centimeter  # X_SIZE & Y_SIZE should be the same, X_GRID & Y_GRID should be the same
@@ -19,7 +20,7 @@ def get_median_3(dists):
     dists.sort()
     return dists[1]
 
-def get_distances(divisor):
+def get_distances(divisor, get_median=True):
     angle_dist_list = []
     step = 180 / divisor
     fc.current_angle = 90
@@ -28,10 +29,14 @@ def get_distances(divisor):
     time.sleep(0.2)
     
     for i in range(divisor + 1):
-        dists = []
-        for j in range(3):
-            dists.append( fc.get_distance_at(angle = fc.current_angle) )
-        distance = get_median_3(dists)
+        if get_median == True:
+            dists = []
+            for j in range(3):
+                dists.append( fc.get_distance_at(angle = fc.current_angle) )
+            distance = get_median_3(dists)
+        else:
+            distance = fc.get_distance_at(angle = fc.current_angle)
+
         if distance < 0:  # too far, make the distance very large, indicating it is outside the map
             distance = 10 * max(X_SIZE, Y_SIZE)
         angle_dist_list.append((fc.current_angle, distance))
@@ -53,14 +58,15 @@ def turn_to(target_dir, map_helper):
         fc.turn_right(TURN_PWR)
     time.sleep(TURN_TIME*abs(del_dir))
     fc.stop()
+    ft.fineTune(del_dir)
     map_helper.curr_dir = target_dir
 
 def scan_and_set_route(map_helper):
     map_helper.unmark_route()
     angle_dist_list = get_distances(divisor=24)
     map_helper.mark_obstacles(angle_dist_list)
-    #map_helper.get_route_navigation_turnpoints()
-    #map_helper.mark_route()
+    map_helper.get_route_navigation_turnpoints()
+    map_helper.mark_route()
     map_helper.print_map(2)
 
 def get_next_step(map_helper):
@@ -110,7 +116,6 @@ if __name__ == '__main__':
         obj.start_detect_object()
         time.sleep(1)
 
-        scan_and_set_route(map_helper) ### test ###
         """
         while not map_helper.is_reach_goal( tolerance =  (10/GRID_SIZE) ):
             ## turn -> scan -> turn -> go
