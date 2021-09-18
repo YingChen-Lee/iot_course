@@ -46,6 +46,9 @@ def get_distances(divisor, get_median=True):
     return angle_dist_list
 
 def turn_to(target_dir, map_helper):
+    fine_tuner = ft.fineTune()
+    fine_tuner.set_ref_points()
+
     del_dir = target_dir.value - map_helper.curr_dir.value
     if del_dir > 4:  # > 180 degree
         del_dir -= 8
@@ -58,7 +61,8 @@ def turn_to(target_dir, map_helper):
         fc.turn_right(TURN_PWR)
     time.sleep(TURN_TIME*abs(del_dir))
     fc.stop()
-    ft.fineTune(del_dir)
+
+    ft.fine_tune(del_dir)
     map_helper.curr_dir = target_dir
 
 def scan_and_set_route(map_helper):
@@ -80,6 +84,7 @@ def get_next_step(map_helper):
     return (dir_next, dist)
 
 def go_forward_and_detect_object(target_dist, power=FORWARD_POWER):
+    obj.start_detect_object()
     target_dist *= 1.2
     total_dist = 0
     time.sleep(0.2)
@@ -100,6 +105,7 @@ def go_forward_and_detect_object(target_dist, power=FORWARD_POWER):
         total_dist += (time.time() - start_time) * fc.speed_val()
 
     fc.stop()
+    obj.end_detect_object()
 
 def get_scan_dir(map_helper):
     if len(map_helper.navigation) > 1:
@@ -113,7 +119,6 @@ if __name__ == '__main__':
         map_helper = mp.Mapping(X_SIZE, Y_SIZE, X_GRID, Y_GRID, (50,0), GOAL, curr_dir = Dir.N, clearance_length = 3)
         scan_dir = Dir.N
         fc.start_speed_thread()
-        obj.start_detect_object()
         time.sleep(1)
 
         """
@@ -129,7 +134,6 @@ if __name__ == '__main__':
 
             scan_dir = get_scan_dir(map_helper)
         """
-        obj.end_detect_object()
         fc.left_rear_speed.deinit()
         fc.right_rear_speed.deinit()
         
