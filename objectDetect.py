@@ -18,7 +18,7 @@ LABELMAP_NAME = 'labelmap.txt'
 default_threshold = 0.7
 imW, imH = 1280, 720
 #imW, imH = 640, 480
-customized_threshold = {'stop sign':0.7, 'person':0.6}
+customized_threshold = {'stop sign':0.6, 'person':0.6, 'teddy bear':0.6}
 
 flip = -1 #0 means flipping around the x-axis, and positive value means flipping around y-axis. Negaive value means flipping around both axis 
 
