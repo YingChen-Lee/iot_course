@@ -15,6 +15,7 @@ TURN_PWR = 35
 TURN_TIME = 2  #adjust this parameter, make it turn 45 degree each time 
 FORWARD_POWER = 40
 GOAL = (50,99)
+#GOAL = (25,99)
 LOW_POWER = True
 LOW_POWER_MUL = 1.2
 

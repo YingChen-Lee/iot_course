@@ -4,12 +4,12 @@ import threading
 import objectDetect as objD
 
 OBJECT_DETECTION_PERIOD = 1
-target_objects = {'person', 'stop sign'}
+target_objects = {'person', 'stop sign', 'teddy bear'}
 
 detected_object_timestamp = {}
 need_handle_objects = []
 detect_object_flag = True
-unfreeze_timestamp = {'person': 0, 'stop sign': 0}
+unfreeze_timestamp = {'person': 0, 'stop sign': 0, 'teddy bear': 0}
 unfreeze_time = 2
 detector = None
 
@@ -61,6 +61,18 @@ def react_to_person(forward_power):
     dist = -2 # in this process, the car actually go a small distance
     return dist
 
+def react_to_teddy_bear(forward_power):
+    fc.stop()
+    print("Handle teddy bear")
+    while time.time() - detected_object_timestamp['teddy bear'] < OBJECT_DETECTION_PERIOD:
+        time.sleep(0.1)
+    
+    fc.forward(forward_power)
+    unfreeze_timestamp['teddy bear'] = time.time() + unfreeze_time
+
+    dist = -2 # in this process, the car actually go a small distance
+    return dist
+
 def react_to_stop_sign(forward_power):
     fc.stop()
     print("Handle stop sign")
@@ -74,5 +86,7 @@ def react_to_stop_sign(forward_power):
 def take_over(forward_power=30):
     if 'person' in need_handle_objects:  # priority: person > traffic light
         return react_to_person(forward_power)
+    elif 'teddy bear' in need_handle_objects:  # priority: teddy bear > traffic light
+        return react_to_teddy_bear(forward_power)
     elif 'stop sign' in need_handle_objects :
         return react_to_stop_sign(forward_power)
