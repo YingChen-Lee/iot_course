@@ -5,6 +5,8 @@ from grid import Dir
 import priorityQueue as pq
 from typing import Dict, Optional, Tuple, List
 
+################# FIX The cost of Dir.NW, Dir.NE, Dir.SE, Dir.SW. It should multiply 1.414
+
 PENALTY_FOR_CHANGE_DIR = 50
 
 def heuristic(a: GridLocation, b: GridLocation) -> float:
