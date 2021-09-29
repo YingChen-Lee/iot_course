@@ -12,11 +12,15 @@ detect_object_flag = True
 unfreeze_timestamp = {'person': 0, 'stop sign': 0, 'teddy bear': 0}
 unfreeze_time = 2
 detector = None
+#prev_time = time.time() ###### test framerate ######
 
 def detect_object():
+    global prev_time ####### test #####
     global detected_object_timestamp, detector
     detector = objD.ObjectDetector()
     while detect_object_flag:
+        #print( 1 / (time.time() - prev_time))  ######test framerate######
+        #prev_time = time.time() ######## test framerate#######
         objects, framerate = detector.get_objects_framerate()
         for obj in objects:
             if obj in target_objects:
