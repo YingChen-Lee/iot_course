@@ -41,11 +41,11 @@ class VideoStream():
         self.stopped = False
 
     def start(self):
-        Thread(target = self.update, args=()).start()
+        Thread(target = self.update, args=()).start() 
         return self
 
     def update(self):
-        while True:
+        while True: 
             if self.stopped:
                 self.stream.release()
                 return
